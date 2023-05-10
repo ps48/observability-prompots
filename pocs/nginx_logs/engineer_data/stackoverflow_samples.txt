@@ -1,0 +1,227 @@
+Stack Overflow Q/A related to nginx 
+
+title 1: Improve Nginx Server Response Time
+SO Link: https://stackoverflow.com/questions/17886477/improve-nginx-server-response-time
+
+Question: 
+I'm currently running an Ubuntu 12.04LTS with nginx handing out requests. I ran my site through google page speed (https://developers.google.com/speed/pagespeed/insights) and the main tip it had was to Improve server response time, but it doesn't give much detail into how to do this. 
+It mostly just listed off some webfonts I'm using (css @font-face) and a couple of images small png's and a gif.
+Any suggestions on how to do this?
+
+Answer:
+I also use Ubuntu 12.04LTS with nginx and ngx_pagespeed
+You can follow this link to compile nginx with ngx_pagespeed: https://github.com/pagespeed/ngx_pagespeed#how-to-build You can increase your score without requiring to modify your code.
+If you want to get a perfect PageSpeed score, this article might help you: http://www.appneta.com/blog/bootstrap-pagespeed . https://github.com/danriti/bootstrap-pagespeed
+
+
+title 2: How to increase the nginx request timeout?
+SO Link: https://stackoverflow.com/questions/14763871/how-to-increase-the-nginx-request-timeout
+
+Question:
+My web server is processing a huge file and then sending a response. I have tried the various nginx timeout parameters without luck. I have tried the parameters recommended in this question, however, I still see the timeout page with the error in the nginx error logs.
+1 upstream prematurely closed connection while reading response header from upstream,client: 10.0.42.97, server: 
+Here is my nginx.conf
+
+http {
+     include       /etc/nginx/mime.types;
+     default_type  application/octet-stream;
+
+     access_log    /var/log/nginx/access.log;
+
+     sendfile on;
+     tcp_nopush on;
+     tcp_nodelay on;
+
+     keepalive_timeout  65;
+
+     client_header_timeout 600;
+     client_body_timeout 600;
+     send_timeout 600;
+     proxy_read_timeout 600;
+
+     fastcgi_buffers 8 16k;
+     fastcgi_buffer_size 32k;
+     fastcgi_read_timeout 600;
+
+     gzip  on;
+     gzip_http_version 1.0;
+     gzip_comp_level 2;
+     gzip_proxied any;
+     gzip_types text/plain text/html text/css application/x-javascript text/xml application/xml application/xml+rss text/javascript application/javascript application/json;
+
+     server_names_hash_bucket_size 64;
+
+     include /etc/nginx/conf.d/*.conf;
+     include /etc/nginx/sites-enabled/*;
+     }
+
+I am still seeing the 502 Bad gateway from time to time, with the above error. Any pointers on what could be wrong? My input file is a csv file, if that helps. Any pointers or recommendations?
+How can I fix this? How can I increase the timeout time?
+
+
+Answer:
+Nginx is not the problem here, it is the script which processes the file you are uploading. If you are using PHP, you have to change the settings in your php.ini to allow for a longer timeout and bigger uploads. Possible settings to increase could be:
+max_execution_time
+max_input_time
+memory_limit
+post_max_size
+upload_max_filesize
+If you are using a different scripting language, you should look for settings which control maximum upload sizes, maximum script execution time and memory limits. So long as Nginx returns bad gateway errors, usually there is something wrong with your processing backend.
+
+
+title 3: How to make nginx wait for response, when response time can be different?
+SO Link: https://stackoverflow.com/questions/75236611/how-to-make-nginx-wait-for-response-when-response-time-can-be-different
+
+Question: 
+There is Java on project server-side. I have some endpoints which allow to generate csv files(lets say user records from db). File size can be different, because there can be applied filters. When filters are applied and file is not too big it works correctly, but when file is big it takes 1,5min to generate it, but nginx timeout is 30 sec, so nginx does not wait for server response and reports with 500. Of course nginx-timeout can be increased, but this is not secured. Is it possible somehow to make nginx waiting more without touching its timeout param?
+
+Answer: 
+None
+
+
+title 4: Nginx server response time is unexpectedly high for one in hundreds of requests
+SO Link: https://stackoverflow.com/questions/72630149/nginx-server-response-time-is-unexpectedly-high-for-one-in-hundreds-of-requests
+
+Question:
+I'm using Nginx to serve .ts files for live streaming (HLS). Everything works fine but there is a problem with the response time of the files. Occasionally, some .ts files received from the server have unexpected high response time which is problematic in our use case.
+I have used a python script in order to find what's the problem. output of python script printing response time
+In this screenshot full response time is the time between the request is sent and the full response is received. The second parameter shown is the time between a request being sent and a response being received. (I've used response.elapsed.total_seconds() in requests package of python). In slow requests full response time is higher but response.elapsed.total_seconds() is OK. (And by higher I mean 3-4 times the average response time.)
+On top of this problem, I have another problem in which both response time (response.elapsed.total_seconds()) and full response time is high. This case happens less frequently (maybe once in 200 requests) and response times are much higher than in the first case.
+I should mention that I have some other machines in front of this machine to proxy and cache files. But doesn't matter if I request the cache machines or the main one. The result is the same.
+
+Here's my nginx config:
+user  root;
+worker_processes  16;
+
+worker_rlimit_nofile 1000000;
+
+master_process on;
+
+pid        /run/nginx.pid;
+
+events {
+    worker_connections  500000;
+    accept_mutex off;
+    multi_accept off;
+}
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    sendfile        on;
+    tcp_nopush on;
+
+    server_tokens off;
+
+    keepalive_timeout  150;
+#    keepalive_requests 5;
+
+    aio on;
+    gzip on;
+    client_header_buffer_size 1k;
+    large_client_header_buffers 4 4k;
+    client_body_buffer_size 1k;
+    client_max_body_size 1k;
+    client_body_timeout 12;
+    client_header_timeout 12;
+    send_timeout 10;
+    tcp_nodelay       on;
+    sendfile_max_chunk 1m;
+    ssl_prefer_server_ciphers on;
+    ssl_protocols TLSv1.2;
+    proxy_intercept_errors on;
+    proxy_http_version 1.1;
+    vhost_traffic_status_zone shared:vhost_traffic_status:10m;
+    underscores_in_headers on;
+    recursive_error_pages on;
+
+    server {
+        listen 80 backlog=10000000;
+        location /tmp {
+            access_log /cache/nginx.log main;
+            types {
+                application/vnd.apple.mpegurl m3u8;
+                video/mp2t ts;
+            }
+            alias /cache/hls;
+            add_header Cache-Control no-cache;
+     }
+}
+I couldn't find anything about this problem until now. Hope I could find an answer here.
+
+Answer:
+None
+
+title 5: Nginx response time
+SO Link: https://stackoverflow.com/questions/39260477/nginx-response-time
+
+Question: 
+I manage a website created using symfony2, i need to "stabilize" the response time of it.
+The response time is floating from 100ms (lower limit) to 1200ms, and it improve randomicaly (i have already excluded the visit dependency).
+The config as following:
+    Centos 7 x64
+    4Gb Ram / 2 VCpu
+    Php-fpm 5.6.23 with this settings:
+
+pm = static
+pm.max_children = 100
+pm.start_servers = 3
+
+    APCu enabled
+    OPcache enabled
+    I can't use fastcgi cache.
+
+Any suggestion?
+Thanks
+
+UPDATE 13:11
+
+RT Correct:
+
+[01/Sep/2016:11:01:04 +0200] XX.XX.XX.XX - "GET / HTTP/1.1" "0.044"  200 15035 "-" "XXXXX" "XX.XX.XX.XX"
+[01/Sep/2016:11:01:31 +0200] XX.XX.XX.XX - "GET / HTTP/1.1" "0.061"  200 15035 "-" "XXXXX" "-"
+
+RT Not Correct:
+
+[01/Sep/2016:11:19:23 +0200] XX.XX.XX.XX - "GET / HTTP/1.1" "1.114"  200 15035 "-" "XXXXX" "XX.XX.XX.XX"
+[01/Sep/2016:11:25:33 +0200] XX.XX.XX.XX - "GET / HTTP/1.1" "1.131"  200 15035 "-" "XXXXX" "-"
+**SAME USER (monitoring system) **
+
+
+Answer:
+In order to optimize my nginx system I have used the following 3 tutorials/tips.
+1. A few tips I used to boost my nginx system
+Tip 1 – Accelerate and Secure Applications with a Reverse Proxy Server
+Tip 2 – Add a Load Balancer
+Tip 3 – Cache Static and Dynamic Content
+Tip 4 – Compress Data
+Tip 5 – Optimize SSL/TLS
+Tip 6 – Implement HTTP/2 or SPDY
+Tip 7 – Update Software Versions
+Tip 8 – Tune Linux for Performance
+Tip 9 – Tune Your Web Server for Performance
+Tip 10 – Monitor Live Activity to Resolve Issues and Bottlenecks
+
+More info: https://www.nginx.com/blog/10-tips-for-10x-application-performance/
+
+2. Very good tutorial to optimize Nginx configuration
+https://www.digitalocean.com/community/tutorials/how-to-optimize-nginx-configuration
+
+3. Tracking Application Response Time with Nginx
+I added the following block to /etc/nginx/nginx.conf
+log_format timed_combined '$remote_addr - $remote_user [$time_local] '
+    '"$request" $status $body_bytes_sent '
+    '"$http_referer" "$http_user_agent" '
+    '$request_time $upstream_response_time $pipe';
+
+Next we modify our access_log directives to use the new format:
+access_log /var/log/nginx/yourdomain.com.access.log timed_combined;
+Here’s an example of the log output:
+
+ 66.249.71.173 - - [08/Nov/2010:14:16:18 -0600]  "GET /blog/2010/apr/30/installing-geodjango-dependencies-homebrew/ HTTP/1.1" 200 6569 "-" "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" 0.640 0.640 .
+
+The last part will show you the time it took to serve:
+0.640 in this case
+Some clever log filtering can now show you exactly where and when your stack is slowing down, giving you clues about where to start optimizing.
+More info: https://lincolnloop.com/blog/tracking-application-response-time-nginx/

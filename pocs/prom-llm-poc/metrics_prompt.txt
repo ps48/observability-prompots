@@ -1,0 +1,7 @@
+All the metrics in this system are stored in prometheus. 
+Follow the below steps to check if a there is an anomaly in a metric:
+
+1. Use the metric name and validate if it exists in the list of prometheus metrics.
+2. Query prometheus with the metric name and check values of last 5 mins.
+3. Check the trend in values and find an anomaly. If found report it. 
+
