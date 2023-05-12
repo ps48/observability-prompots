@@ -2,7 +2,9 @@ from fastapi import FastAPI, Body
 from fastapi.middleware.cors import CORSMiddleware
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from langchain.chains import ChatVectorDBChain
+
+# from langchain.chains import ChatVectorDBChain
+from langchain.chains import ConversationalRetrievalChain
 from langchain.chains.chat_vector_db.prompts import CONDENSE_QUESTION_PROMPT
 from langchain.chains.llm import LLMChain
 from langchain.chains.question_answering import load_qa_chain
@@ -85,7 +87,7 @@ question_generator = LLMChain(llm=llm, prompt=CONDENSE_QUESTION_PROMPT)
 doc_chain = load_qa_chain(streaming_llm, chain_type="stuff", prompt=prompt)
 
 # chat vector chain
-qa = ChatVectorDBChain(
+qa = ConversationalRetrievalChain(
     vectorstore=vectorstore,
     combine_docs_chain=doc_chain,
     question_generator=question_generator,
