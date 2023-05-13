@@ -6,7 +6,6 @@ from langchain.text_splitter import CharacterTextSplitter
 
 def loadDocuments() -> List[Document]:
     # load opensearch observability website
-
     documents = []
 
     # load all documentation from opensearch docs/blogs
