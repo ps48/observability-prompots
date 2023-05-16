@@ -1,5 +1,5 @@
 import os
-from langchain import PromptTemplate
+from langchain import LLMChain, PromptTemplate
 import requests
 from base_llm import BaseModel
 from load_utils import loadDocuments
@@ -9,6 +9,8 @@ from langchain.vectorstores import Chroma
 from langchain.agents.tools import Tool
 from langchain.chains.summarize import load_summarize_chain
 from dotenv import load_dotenv
+from langchain.docstore.document import Document
+from langchain.text_splitter import CharacterTextSplitter
 
 # Load env variables
 load_dotenv()
@@ -61,11 +63,10 @@ def execute_ppl_query(ppl_query: str):
 #################################
 # Summarization Tool
 #################################
-prompt_template = """Write a concise summary of the following:
-{text}
-"""
-PROMPT = PromptTemplate(template=prompt_template, input_variables=["text"])
-summarization_chain = load_summarize_chain(llm, chain_type="stuff")
+prompt_template = "Write a concise summary of the following: {text}?"
+summarize_text_chain = LLMChain(
+    llm=llm, prompt=PromptTemplate.from_template(prompt_template)
+)
 
 
 def create_tools():
@@ -87,8 +88,8 @@ def create_tools():
         ),
         Tool(
             name="Summarization",
-            func=summarization_chain.run,
-            description="useful for when you need to frame a final answer as response",
+            func=summarize_text_chain,
+            description="useful for when you need to frame a final answer as response, input should be in format text: input",
         ),
     ]
 
