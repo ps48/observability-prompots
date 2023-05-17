@@ -1,4 +1,5 @@
 from langchain import OpenAI
+from langchain.embeddings.openai import OpenAIEmbeddings
 
 
 class BaseModel:
@@ -8,9 +9,14 @@ class BaseModel:
     """
 
     llm = None
+    embeddings = None
 
     def __init__(self):
         self.llm = OpenAI(temperature=0)
+        self.embeddings = OpenAIEmbeddings()
 
     def get_model(self):
         return self.llm
+
+    def get_embeddings(self):
+        return self.embeddings

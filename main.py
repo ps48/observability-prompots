@@ -1,29 +1,22 @@
-from fastapi import FastAPI, Body
+from dotenv import load_dotenv
+from fastapi import Body, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-
-# from langchain.chains import ChatVectorDBChain
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chains.chat_vector_db.prompts import CONDENSE_QUESTION_PROMPT
 from langchain.chains.llm import LLMChain
 from langchain.chains.question_answering import load_qa_chain
 from langchain.chat_models import ChatOpenAI
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import OpenAI
-from dotenv import load_dotenv
-
-#   chat prompt
 from langchain.prompts.chat import (
     ChatPromptTemplate,
-    SystemMessagePromptTemplate,
     HumanMessagePromptTemplate,
+    SystemMessagePromptTemplate,
 )
-from langchain.vectorstores import Chroma
 
+from ingest import create_vector_store
 
-# Web Server.gitignore
-from load_utils import loadDocuments
 
 load_dotenv()  # Load environment variables from the .env file
 app = FastAPI()
@@ -70,11 +63,10 @@ prompt = ChatPromptTemplate.from_messages(messages)
 
 # Construct a ChatVectorDBChain with a streaming llm for combine docs
 # and a separate, non-streaming llm for question generation
-documents = loadDocuments()
 llm = OpenAI(temperature=1e-10)
 
 # # vector store generation using embedding
-vectorstore = Chroma.from_documents(documents, OpenAIEmbeddings())
+vectorstore = create_vector_store()
 streaming_llm = ChatOpenAI(
     streaming=True,
     callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]),

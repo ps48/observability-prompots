@@ -1,16 +1,15 @@
 import os
-from langchain import LLMChain, PromptTemplate
-import requests
-from base_llm import BaseModel
-from load_utils import loadDocuments
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.chains import RetrievalQA
-from langchain.vectorstores import Chroma
-from langchain.agents.tools import Tool
-from langchain.chains.summarize import load_summarize_chain
+
 from dotenv import load_dotenv
-from langchain.docstore.document import Document
+from langchain import LLMChain, PromptTemplate
+from langchain.agents.tools import Tool
+from langchain.chains import RetrievalQA
+from langchain.chains.summarize import load_summarize_chain
 from langchain.text_splitter import CharacterTextSplitter
+import requests
+
+from base_llm import BaseModel
+from ingest import create_vector_store
 
 # Load env variables
 load_dotenv()
@@ -23,14 +22,9 @@ llm = basemodel.get_model()
 #################################
 # OTEL Knowledge tool
 #################################
-documents = loadDocuments()
-# vector store generation using embedding
-vectorstore = Chroma.from_documents(
-    documents, OpenAIEmbeddings(), collection_name="otel-demo-knowledge"
-)
 # create a retriver chain to query index with Q/A
 otel_knowledge = RetrievalQA.from_chain_type(
-    llm=llm, chain_type="stuff", retriever=vectorstore.as_retriever()
+    llm=llm, chain_type="stuff", retriever=create_vector_store().as_retriever()
 )
 
 
